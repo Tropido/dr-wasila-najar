@@ -137,7 +137,7 @@ const content = {
     },
     modal: {
       title: 'Prendre rendez-vous',
-      subtitle: 'Remplissez ce formulaire et nous vous contacterons sous 24h',
+      subtitle: 'Planifiez directement votre consultation ci-dessous',
       labels: { fname: 'Prénom', lname: 'Nom', phone: 'Téléphone', email: 'Email', type: 'Type de consultation', msg: 'Message (optionnel)', submit: 'Envoyer ma demande' },
       types: ['Première consultation', 'Suivi thérapeutique', 'Consultation en ligne', 'Urgence psychiatrique']
     },
@@ -268,7 +268,7 @@ const content = {
     },
     modal: {
       title: 'حجز موعد',
-      subtitle: 'أملأ هذا النموذج وسنتصل بك خلال 24 ساعة',
+      subtitle: 'قم بجدولة موعدك مباشرة أدناه',
       labels: { fname: 'الاسم الأول', lname: 'اللقب', phone: 'الهاتف', email: 'البريد الإلكتروني', type: 'نوع الاستشارة', msg: 'رسالة (اختياري)', submit: 'إرسال طلبي' },
       types: ['استشارة أولى', 'متابعة علاجية', 'استشارة عبر الإنترنت', 'طوارئ نفسية']
     },
@@ -975,13 +975,46 @@ function BookingCTA({ t, onBooking }) {
 
 // ─── Booking Modal ────────────────────────────────────────────────
 function BookingModal({ t, onClose }) {
-  const [submitted, setSubmitted] = useState(false)
-  const [form, setForm] = useState({ fname: '', lname: '', phone: '', email: '', type: '', msg: '' })
+  useEffect(() => {
+    (function (C, A, L) { 
+      let p = function (a, ar) { a.q.push(ar); }; 
+      let d = C.document; 
+      C.Cal = C.Cal || function () { 
+        let cal = C.Cal; 
+        let ar = arguments; 
+        if (!cal.loaded) { 
+          cal.ns = {}; 
+          cal.q = cal.q || []; 
+          d.head.appendChild(d.createElement("script")).src = A; 
+          cal.loaded = true; 
+        } 
+        if (ar[0] === L) { 
+          const api = function () { p(api, arguments); }; 
+          const namespace = ar[1]; 
+          api.q = api.q || []; 
+          if(typeof namespace === "string"){
+            cal.ns[namespace] = cal.ns[namespace] || api;
+            p(cal.ns[namespace], ar);
+            p(cal, ["initNamespace", namespace]);
+          } else p(cal, ar); 
+          return;
+        } 
+        p(cal, ar); 
+      }; 
+    })(window, "https://app.cal.eu/embed/embed.js", "init");
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    setSubmitted(true)
-  }
+    window.Cal("init", "30min", {origin:"https://app.cal.eu"});
+    window.Cal.config = window.Cal.config || {};
+    window.Cal.config.forwardQueryParams = true;
+
+    window.Cal.ns["30min"]("inline", {
+      elementOrSelector:"#my-cal-inline-30min",
+      config: {"layout":"month_view","useSlotsViewOnSmallScreen":"true"},
+      calLink: "wassilanajar/30min",
+    });
+
+    window.Cal.ns["30min"]("ui", {"hideEventTypeDetails":false,"layout":"month_view"});
+  }, []);
 
   return (
     <motion.div
@@ -998,122 +1031,14 @@ function BookingModal({ t, onClose }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.92, y: 20 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        style={{ maxWidth: '850px', width: '95%', height: '85vh', display: 'flex', flexDirection: 'column', padding: 'var(--space-8)' }}
       >
-        <button className="modal-close" onClick={onClose} aria-label="Fermer">×</button>
-
-        {!submitted ? (
-          <>
-            <h2 className="modal-title">{t.modal.title}</h2>
-            <p className="modal-subtitle">{t.modal.subtitle}</p>
-
-            <form onSubmit={handleSubmit}>
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">{t.modal.labels.fname}</label>
-                  <input
-                    className="form-input"
-                    type="text"
-                    required
-                    placeholder="Meriem"
-                    value={form.fname}
-                    onChange={e => setForm({ ...form, fname: e.target.value })}
-                    id="modal-fname"
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">{t.modal.labels.lname}</label>
-                  <input
-                    className="form-input"
-                    type="text"
-                    required
-                    placeholder="Najar"
-                    value={form.lname}
-                    onChange={e => setForm({ ...form, lname: e.target.value })}
-                    id="modal-lname"
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">{t.modal.labels.phone}</label>
-                  <input
-                    className="form-input"
-                    type="tel"
-                    required
-                    placeholder="+213 XX XX XX XX"
-                    value={form.phone}
-                    onChange={e => setForm({ ...form, phone: e.target.value })}
-                    id="modal-phone"
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">{t.modal.labels.email}</label>
-                  <input
-                    className="form-input"
-                    type="email"
-                    required
-                    placeholder="vous@email.com"
-                    value={form.email}
-                    onChange={e => setForm({ ...form, email: e.target.value })}
-                    id="modal-email"
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">{t.modal.labels.type}</label>
-                <select
-                  className="form-input"
-                  required
-                  value={form.type}
-                  onChange={e => setForm({ ...form, type: e.target.value })}
-                  id="modal-type"
-                >
-                  <option value="">Sélectionner...</option>
-                  {t.modal.types.map((type, i) => (
-                    <option key={i} value={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">{t.modal.labels.msg}</label>
-                <textarea
-                  className="form-input"
-                  rows={3}
-                  placeholder="..."
-                  value={form.msg}
-                  onChange={e => setForm({ ...form, msg: e.target.value })}
-                  id="modal-msg"
-                  style={{ resize: 'vertical', minHeight: 80 }}
-                />
-              </div>
-
-              <MagneticButton type="submit" className="btn-primary form-submit">
-                <span>{t.modal.labels.submit}</span>
-              </MagneticButton>
-            </form>
-          </>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            style={{ textAlign: 'center', padding: 'var(--space-10) 0' }}
-          >
-            <div style={{ fontSize: 56, marginBottom: 'var(--space-6)' }}>🌿</div>
-            <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: 32, fontWeight: 300, color: 'var(--sage-deep)', marginBottom: 'var(--space-4)' }}>
-              Merci pour votre confiance
-            </h3>
-            <p style={{ color: 'var(--ink-muted)', fontSize: 15, lineHeight: 1.75 }}>
-              Nous avons bien reçu votre demande. Notre équipe vous contactera sous 24h pour confirmer votre rendez-vous.
-            </p>
-            <button className="btn-primary" style={{ marginTop: 'var(--space-8)' }} onClick={onClose}>
-              <span>Fermer</span>
-            </button>
-          </motion.div>
-        )}
+        <button className="modal-close" onClick={onClose} aria-label="Fermer" style={{ zIndex: 10 }}>×</button>
+        <h2 className="modal-title" style={{ marginBottom: 'var(--space-1)' }}>{t.modal.title}</h2>
+        <p className="modal-subtitle" style={{ marginBottom: 'var(--space-4)' }}>{t.modal.subtitle}</p>
+        <div style={{ flex: 1, width: '100%', overflow: 'hidden', borderRadius: 'var(--radius-lg)' }}>
+          <div style={{ width: '100%', height: '100%', overflow: 'scroll' }} id="my-cal-inline-30min"></div>
+        </div>
       </motion.div>
     </motion.div>
   )
