@@ -932,11 +932,52 @@ function FAQ({ t, onBooking }) {
 }
 
 // ─── Booking CTA Section ─────────────────────────────────────────
-function BookingCTA({ t, onBooking }) {
-  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 })
+function BookingCTA({ t }) {
+  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.05 })
+
+  useEffect(() => {
+    (function (C, A, L) { 
+      let p = function (a, ar) { a.q.push(ar); }; 
+      let d = C.document; 
+      C.Cal = C.Cal || function () { 
+        let cal = C.Cal; 
+        let ar = arguments; 
+        if (!cal.loaded) { 
+          cal.ns = {}; 
+          cal.q = cal.q || []; 
+          d.head.appendChild(d.createElement("script")).src = A; 
+          cal.loaded = true; 
+        } 
+        if (ar[0] === L) { 
+          const api = function () { p(api, arguments); }; 
+          const namespace = ar[1]; 
+          api.q = api.q || []; 
+          if(typeof namespace === "string"){
+            cal.ns[namespace] = cal.ns[namespace] || api;
+            p(cal.ns[namespace], ar);
+            p(cal, ["initNamespace", namespace]);
+          } else p(cal, ar); 
+          return;
+        } 
+        p(cal, ar); 
+      }; 
+    })(window, "https://app.cal.eu/embed/embed.js", "init");
+
+    window.Cal("init", "30min", {origin:"https://app.cal.eu"});
+    window.Cal.config = window.Cal.config || {};
+    window.Cal.config.forwardQueryParams = true;
+
+    window.Cal.ns["30min"]("inline", {
+      elementOrSelector:"#my-cal-inline-30min-bottom",
+      config: {"layout":"month_view","useSlotsViewOnSmallScreen":"true"},
+      calLink: "wassilanajar/30min",
+    });
+
+    window.Cal.ns["30min"]("ui", {"hideEventTypeDetails":false,"layout":"month_view"});
+  }, []);
 
   return (
-    <section className="booking-cta section" ref={ref}>
+    <section className="booking-cta section" ref={ref} id="reservation">
       <div className="booking-cta-bg" aria-hidden="true" />
       <div className="container">
         <motion.div
@@ -944,6 +985,7 @@ function BookingCTA({ t, onBooking }) {
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
           variants={stagger}
+          style={{ marginBottom: 'var(--space-10)' }}
         >
           <motion.div className="booking-cta-content" variants={fadeUp}>
             <span className="t-label">{t.booking.label}</span>
@@ -951,9 +993,6 @@ function BookingCTA({ t, onBooking }) {
               {t.booking.heading1} <em>{t.booking.heading2}</em>
             </h2>
             <p className="t-body-large" style={{ marginTop: 'var(--space-6)' }}>{t.booking.body}</p>
-            <MagneticButton className="btn-primary" style={{ marginTop: 'var(--space-10)', padding: '16px 36px', fontSize: 15 }} onClick={onBooking}>
-              <span>{t.booking.cta}</span>
-            </MagneticButton>
           </motion.div>
 
           <motion.div className="booking-info-card" variants={scaleIn}>
@@ -962,11 +1001,31 @@ function BookingCTA({ t, onBooking }) {
                 <div className="booking-info-icon">{info.icon}</div>
                 <div>
                   <div className="booking-info-label">{info.label}</div>
-                  <div className="booking-info-value">{info.value}</div>
+                  <div className="booking-info-value" style={{ whiteSpace: 'pre-line' }}>{info.value}</div>
                 </div>
               </div>
             ))}
           </motion.div>
+        </motion.div>
+
+        {/* Cal.com bottom inline embed */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          style={{ 
+            background: 'var(--glass)', 
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(200, 190, 175, 0.25)', 
+            borderRadius: 'var(--radius-xl)', 
+            padding: 'var(--space-6)',
+            boxShadow: 'var(--shadow-md)',
+            height: '75vh',
+            minHeight: '600px',
+            overflow: 'hidden'
+          }}
+        >
+          <div style={{ width: '100%', height: '100%', overflow: 'scroll' }} id="my-cal-inline-30min-bottom"></div>
         </motion.div>
       </div>
     </section>
